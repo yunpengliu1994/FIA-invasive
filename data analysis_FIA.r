@@ -1114,7 +1114,8 @@ get.mta2=function(plt,trait_mat=NULL,tree=NULL,allplots,sp.status,analysis="FDis
 	if (analysis=="FDis"){
 		require(FD)
 		## caculate Abundance weighted functional distinctiveness
-		abd=t2%>%group_by(Accepted_name)%>%summarise(n=sum(Abund_weight))#tally
+		abd0=t2%>%group_by(Accepted_name)%>%summarise(n=sum(Abund_weight))%>%as.data.frame
+		abd=abd0$n;names(abd)=abd0$Accepted_name
 		trait_mat.t=trait_mat[sp.all,]
 		gowdis_corect=function(n) {
 			n[which.max(n)]=ifelse(max(n,na.rm = T)==min(n,na.rm = T)&length(na.omit(n))>1,
@@ -1137,21 +1138,17 @@ get.mta2=function(plt,trait_mat=NULL,tree=NULL,allplots,sp.status,analysis="FDis
 		}
 		re=data.frame(PLT_CN=plt,
 			mta.si.nn=ifelse(length(si.nn)==0,NA,do.call(c,lapply(si.nn,mta.cal,G.trait.mat,abd,j.sp=native.survior,sp.all=sp.all))%>%
-				stats::weighted.mean(,abd[abd$Accepted_name%in%si.nn,]$n,na.rm=T)),
+				stats::weighted.mean(.,abd[si.nn]$n,na.rm=T)),
 			mta.nn=ifelse(length(nn)==0,NA,do.call(c,lapply(nn,mta.cal,G.trait.mat,abd,j.sp=native.survior,sp.all=sp.all))%>%
-				stats::weighted.mean(,abd[abd$Accepted_name%in%nn,]$n,na.rm=T)),
-			mta.dead=ifelse(length(dead.sp)==0,NA,do.call(c,lapply(dead.sp,mta.cal,G.trait.mat,abd,j.sp=NULL,sp.all=sp.all))%>%
-				stats::weighted.mean(,abd[abd$Accepted_name%in%dead.sp,]$n,na.rm=T)),
-			mta.dead2=ifelse(length(dead.sp)==0,NA,do.call(c,lapply(dead.sp,mta.cal,G.trait.mat,abd,j.sp=native.survior,sp.all=sp.all))%>%
-				stats::weighted.mean(,abd[abd$Accepted_name%in%dead.sp,]$n,na.rm=T)),
-			mta.native.survior=ifelse(length(native.survior)==0,NA,do.call(c,lapply(native.survior,mta.cal,G.trait.mat,abd,j.sp=NULL,sp.all=sp.all))%>%
-				stats::weighted.mean(,abd[abd$Accepted_name%in%native.survior,]$n,na.rm=T)),
-			mta.native.survior2=ifelse(length(native.survior)==0,NA,do.call(c,lapply(native.survior,mta.cal,G.trait.mat,abd,j.sp=native.survior,sp.all=sp.all))%>%
-				stats::weighted.mean(,abd[abd$Accepted_name%in%native.survior,]$n,na.rm=T)),	
+				stats::weighted.mean(.,abd[nn]$n,na.rm=T)),
+			mta.dead=ifelse(length(dead.sp)==0,NA,do.call(c,lapply(dead.sp,mta.cal,G.trait.mat,abd,j.sp=native.survior,sp.all=sp.all))%>%
+				stats::weighted.mean(.,abd[dead.sp]$n,na.rm=T)),
+			mta.native.survior=ifelse(length(native.survior)==0,NA,do.call(c,lapply(native.survior,mta.cal,G.trait.mat,abd,j.sp=native.survior,sp.all=sp.all))%>%
+				stats::weighted.mean(.,abd[native.survior]$n,na.rm=T)),	
 			mta.si.nn.dead=ifelse(length(si.nn)==0|length(dead.sp)==0,NA,do.call(c,lapply(si.nn,mta.cal,G.trait.mat,abd,j.sp=dead.sp,sp.all=sp.all))%>%
-				stats::weighted.mean(,abd[abd$Accepted_name%in%si.nn,]$n,na.rm=T)),
+				stats::weighted.mean(.,abd[si.nn]$n,na.rm=T)),
 			mta.nn.dead=ifelse(length(nn)==0|length(dead.sp)==0,NA,do.call(c,lapply(nn,mta.cal,G.trait.mat,abd,j.sp=dead.sp,sp.all=sp.all))%>%
-				stats::weighted.mean(,abd[abd$Accepted_name%in%nn,]$n,na.rm=T))
+				stats::weighted.mean(.,abd[nn]$n,na.rm=T))
 		)
 		return(re)		
 	}
